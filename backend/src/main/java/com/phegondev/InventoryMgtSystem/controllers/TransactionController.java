@@ -3,9 +3,13 @@ package com.phegondev.InventoryMgtSystem.controllers;
 import com.phegondev.InventoryMgtSystem.dtos.Response;
 import com.phegondev.InventoryMgtSystem.dtos.TransactionRequest;
 import com.phegondev.InventoryMgtSystem.enums.TransactionStatus;
+import com.phegondev.InventoryMgtSystem.enums.TransactionType;
 import com.phegondev.InventoryMgtSystem.services.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import java.math.BigDecimal;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/transactions")
 @RequiredArgsConstructor
 public class TransactionController {
-
 
     private final TransactionService transactionService;
 
@@ -23,7 +26,7 @@ public class TransactionController {
     }
 
     @PostMapping("/sell")
-    public ResponseEntity<Response> makeSale(@RequestBody @Valid TransactionRequest transactionRequest) {
+    public ResponseEntity<Response> sell(@RequestBody TransactionRequest transactionRequest) {
         return ResponseEntity.ok(transactionService.sell(transactionRequest));
     }
 
@@ -38,10 +41,9 @@ public class TransactionController {
             @RequestParam(defaultValue = "1000") int size,
             @RequestParam(required = false) String filter) {
 
-        System.out.println("SEARCH VALUE IS: " +filter);
+        System.out.println("SEARCH VALUE IS: " + filter);
         return ResponseEntity.ok(transactionService.getAllTransactions(page, size, filter));
     }
-
 
     @GetMapping("/{id}")
     public ResponseEntity<Response> getTransactionById(@PathVariable Long id) {
@@ -63,6 +65,30 @@ public class TransactionController {
 
         return ResponseEntity.ok(transactionService.updateTransactionStatus(transactionId, status));
     }
+    
+    @GetMapping("/count/sales")
+    public ResponseEntity<Long> countSales() {
+        long count = transactionService.countSales();
+        return ResponseEntity.ok(count);
+    }
+    @GetMapping("/sum/total-price")
+    public ResponseEntity<BigDecimal> sumTotalPriceByTypeAndStatus(
+            @RequestParam TransactionType type,
+            @RequestParam TransactionStatus status) {
 
+        BigDecimal totalPrice = transactionService.sumTotalPriceByTypeAndStatus(type, status);
+        return ResponseEntity.ok(totalPrice);
+    }
+    @GetMapping("/sum/total-price-by-type-status")
+    public ResponseEntity<BigDecimal> sumTotalPriceByTransactionTypeAndStatus(
+            @RequestParam TransactionType type,
+            @RequestParam TransactionStatus status) {
+
+        BigDecimal totalPrice = transactionService.sumTotalPriceByTransactionTypeAndStatus(type, status);
+        return ResponseEntity.ok(totalPrice);
+    }
+   
+
+    
 
 }

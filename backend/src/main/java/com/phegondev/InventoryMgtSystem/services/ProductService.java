@@ -10,10 +10,13 @@ public interface ProductService {
     Response updateProduct(ProductDTO productDTO, MultipartFile imageFile);
 
     Response getAllProducts();
+   
 
     Response getProductById(Long id);
 
     Response deleteProduct(Long id);
 
     Response searchProduct(String input);
+
+    long countProducts();
 }

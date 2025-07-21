@@ -19,6 +19,8 @@ public class ProductController {
 
     private final ProductService productService;
 
+
+    
     @PostMapping("/add")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Response> saveProduct(
@@ -65,7 +67,16 @@ public class ProductController {
 
         return ResponseEntity.ok(productService.updateProduct(productDTO, imageFile));
 
+    }@GetMapping("/count")
+    
+    // Endpoint to count all products
+    
+    public ResponseEntity<Long> countProducts() {
+        long count = productService.countProducts();
+        return ResponseEntity.ok(count);
     }
+
+
 
 
     @GetMapping("/all")

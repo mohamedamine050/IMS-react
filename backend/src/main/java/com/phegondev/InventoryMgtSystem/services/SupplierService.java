@@ -14,5 +14,6 @@ public interface SupplierService {
     Response getSupplierById(Long id);
 
     Response deleteSupplier(Long id);
+    long countSuppliers();
 
 }

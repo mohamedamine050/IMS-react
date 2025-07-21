@@ -100,4 +100,8 @@ public class SupplierServiceImpl implements SupplierService {
                 .message("Supplier Was Successfully Deleted")
                 .build();
     }
+        @Override
+        public long countSuppliers() {
+        return supplierRepository.count();
+        }
 }

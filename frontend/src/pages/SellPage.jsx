@@ -4,10 +4,9 @@ import ApiService from "../service/ApiService";
 
 const SellPage = () => {
   const [products, setProducts] = useState([]);
-  const [productId, setProductId] = useState("");
+  const [selectedProducts, setSelectedProducts] = useState([]); // [{productId, quantity}]
   const [description, setDescription] = useState("");
   const [note, setNote] = useState("");
-  const [quantity, setQuantity] = useState("");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -21,42 +20,71 @@ const SellPage = () => {
         );
       }
     };
-
     fetchProducts();
   }, []);
+
+  const handleProductSelect = (productId, checked) => {
+    if (checked) {
+      setSelectedProducts([...selectedProducts, { productId, quantity: 1 }]);
+    } else {
+      setSelectedProducts(
+        selectedProducts.filter((p) => p.productId !== productId)
+      );
+    }
+  };
+
+  const handleQuantityChange = (productId, value) => {
+    setSelectedProducts(
+      selectedProducts.map((p) =>
+        p.productId === productId
+          ? { ...p, quantity: Number(value) }
+          : p
+      )
+    );
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!productId || !quantity) {
-      showMessage("Please fill in all required fields");
-      return
+    if (selectedProducts.length === 0) {
+      showMessage("Veuillez sélectionner au moins un produit.");
+      return;
     }
+
+    if (selectedProducts.some((p) => !p.quantity || p.quantity <= 0)) {
+      showMessage("Veuillez saisir une quantité valide pour chaque produit.");
+      return;
+    }
+
+    const totalQuantity = selectedProducts.reduce(
+      (sum, p) => sum + Number(p.quantity || 0),
+      0
+    );
+
     const body = {
-      productId,
-      quantity: parseInt(quantity),
-  
+      quantity: totalQuantity,
+      products: selectedProducts, // [{productId, quantity}]
+      description,
+      note,
     };
 
     try {
-      const respone = await ApiService.sellProduct(body);
-      showMessage(respone.message);
+      await ApiService.sellProduct(body);
+      showMessage("Vente enregistrée !");
       resetForm();
     } catch (error) {
       showMessage(
-        error.response?.data?.message || "Error Selling Product: " + error
+        error.response?.data?.message || "Erreur lors de la vente : " + error
       );
     }
   };
 
   const resetForm = () => {
-    setProductId("");
+    setSelectedProducts([]);
     setDescription("");
     setNote("");
-    setQuantity("");
   };
 
-  //metjhod to show message or errors
   const showMessage = (msg) => {
     setMessage(msg);
     setTimeout(() => {
@@ -71,31 +99,44 @@ const SellPage = () => {
         <h1>Sell Product</h1>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Select product</label>
-
-            <select
-              value={productId}
-              onChange={(e) => setProductId(e.target.value)}
-              required
-            >
-              <option value="">Select a product</option>
-              {products.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-
-          <div className="form-group">
-            <label>Quantity</label>
-            <input
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              required
-            />
+            <label>Produits à vendre</label>
+            {products.map((product) => {
+              const selected = selectedProducts.find(
+                (p) => p.productId === product.id
+              );
+              return (
+                <div
+                  key={product.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    marginBottom: 8,
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={!!selected}
+                    onChange={(e) =>
+                      handleProductSelect(product.id, e.target.checked)
+                    }
+                  />
+                  <span style={{ marginLeft: 8, marginRight: 8 }}>
+                    {product.name}
+                  </span>
+                  {selected && (
+                    <input
+                      type="number"
+                      min={1}
+                      value={selected.quantity}
+                      onChange={(e) =>
+                        handleQuantityChange(product.id, e.target.value)
+                      }
+                      style={{ width: 60 }}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <div className="form-group">
@@ -118,11 +159,11 @@ const SellPage = () => {
             />
           </div>
 
-
           <button type="submit">Sell Product</button>
         </form>
       </div>
     </Layout>
   );
 };
+
 export default SellPage;

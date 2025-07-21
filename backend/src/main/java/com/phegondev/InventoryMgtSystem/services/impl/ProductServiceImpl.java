@@ -1,6 +1,8 @@
 package com.phegondev.InventoryMgtSystem.services.impl;
 
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.phegondev.InventoryMgtSystem.dtos.ProductDTO;
 import com.phegondev.InventoryMgtSystem.dtos.Response;
 import com.phegondev.InventoryMgtSystem.exceptions.NotFoundException;
@@ -13,14 +15,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
+
 
 @Service
 @RequiredArgsConstructor
@@ -31,10 +35,14 @@ public class ProductServiceImpl implements ProductService {
     private final ModelMapper modelMapper;
     private final CategoryRepository categoryRepository;
 
-    private static final String IMAGE_DIRECTORY = System.getProperty("user.dir") + "/product-images/";
+    @Autowired
+    private Cloudinary cloudinary;
 
-    //AFTER YOUR FRONTEND IS SETUP CHANGE THE IMAGE DIRECTORY TO YHE FRONTEND YOU ARE USING
-    private static final String IMAGE_DIRECTORY_2 = "/Users/dennismac/phegonDev/ims-react/public/products/";
+    
+    @Override
+    public long countProducts() {
+        return productRepository.count();
+    }
 
     @Override
     public Response saveProduct(ProductDTO productDTO, MultipartFile imageFile) {
@@ -54,11 +62,9 @@ public class ProductServiceImpl implements ProductService {
 
         if (imageFile != null && !imageFile.isEmpty()) {
             log.info("Image file exist");
-//            String imagePath = saveImage(imageFile); //use this when you haven't setup your frontend
-            String imagePath = saveImage2(imageFile); //use this when you ave set up your frontend locally but haven't deployed to produiction
-
-            System.out.println("IMAGE URL IS: " + imagePath);
-            productToSave.setImageUrl(imagePath);
+            String imageUrl = uploadImageToCloudinary(imageFile);
+            System.out.println("IMAGE URL IS: " + imageUrl);
+            productToSave.setImageUrl(imageUrl);
         }
 
         //save the product entity
@@ -79,11 +85,9 @@ public class ProductServiceImpl implements ProductService {
 
         //check if image is associated with the product to update and upload
         if (imageFile != null && !imageFile.isEmpty()) {
-//            String imagePath = saveImage(imageFile); //use this when you haven't setup your frontend
-            String imagePath = saveImage2(imageFile); //use this when you ave set up your frontend locally but haven't deployed to produiction
-
-            System.out.println("IMAGE URL IS: " + imagePath);
-            existingProduct.setImageUrl(imagePath);
+            String imageUrl = uploadImageToCloudinary(imageFile);
+            System.out.println("IMAGE URL IS: " + imageUrl);
+            existingProduct.setImageUrl(imageUrl);
         }
 
         //check if category is to be chanegd for the products
@@ -186,66 +190,18 @@ public class ProductServiceImpl implements ProductService {
                 .build();
     }
 
-
-    //this save to the root of your project
-    private String saveImage(MultipartFile imageFile) {
-        //validate image and check if it is greater than 1GIB
+    // Ajoute cette méthode pour l'upload Cloudinary
+    private String uploadImageToCloudinary(MultipartFile imageFile) {
         if (!imageFile.getContentType().startsWith("image/") || imageFile.getSize() > 1024 * 1024 * 1024) {
             throw new IllegalArgumentException("Only image files under 1GIG is allowed");
         }
-
-        //create the directory if it doesn't exist
-        File directory = new File(IMAGE_DIRECTORY);
-
-        if (!directory.exists()) {
-            directory.mkdir();
-            log.info("Directory was created");
-        }
-        //generate unique file name for the image
-        String uniqueFileName = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
-
-        //Get the absolute path of the image
-        String imagePath = IMAGE_DIRECTORY + uniqueFileName;
-
         try {
-            File destinationFile = new File(imagePath);
-            imageFile.transferTo(destinationFile); //we are writing the image to this folder
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Error saving Image: " + e.getMessage());
+            Map uploadResult = cloudinary.uploader().upload(imageFile.getBytes(), ObjectUtils.emptyMap());
+            return uploadResult.get("secure_url").toString();
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Erreur upload Cloudinary: " + e.getMessage());
         }
-        return imagePath;
-
     }
 
-    //This saved image to the public folder in your frontend
-    //Use this if your have setup your frontend
-    private String saveImage2(MultipartFile imageFile) {
-        //validate image and check if it is greater than 1GIB
-        if (!imageFile.getContentType().startsWith("image/") || imageFile.getSize() > 1024 * 1024 * 1024) {
-            throw new IllegalArgumentException("Only image files under 1GIG is allowed");
-        }
-
-        //create the directory if it doesn't exist
-        File directory = new File(IMAGE_DIRECTORY_2);
-
-        if (!directory.exists()) {
-            directory.mkdir();
-            log.info("Directory was created");
-        }
-        //generate unique file name for the image
-        String uniqueFileName = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
-
-        //Get the absolute path of the image
-        String imagePath = IMAGE_DIRECTORY_2 + uniqueFileName;
-
-        try {
-            File destinationFile = new File(imagePath);
-            imageFile.transferTo(destinationFile); //we are writing the image to this folder
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Error saving Image: " + e.getMessage());
-        }
-        return "products/"+uniqueFileName;
-
-
-    }
+    // Tu peux supprimer ou commenter saveImage et saveImage2 si tu n'en as plus besoin.
 }

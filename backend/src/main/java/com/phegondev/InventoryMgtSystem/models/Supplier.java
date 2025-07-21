@@ -26,4 +26,7 @@ public class Supplier {
     private String contactInfo;
 
     private String address;
+
+    
+    
 }

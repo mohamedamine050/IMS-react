@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @AllArgsConstructor
@@ -31,7 +33,7 @@ public class Transaction {
     private TransactionType transactionType; // pruchase, sale, return
 
     @Enumerated(EnumType.STRING)
-    private TransactionStatus status; //pending, completed, processing
+    private TransactionStatus status; // pending, completed, processing
 
     private String description;
     private String note;
@@ -39,9 +41,9 @@ public class Transaction {
     private final LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime updateAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
-    private Product product;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "transaction_product", joinColumns = @JoinColumn(name = "transaction_id"), inverseJoinColumns = @JoinColumn(name = "product_id"))
+    private Set<Product> products = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -65,4 +67,11 @@ public class Transaction {
                 ", updateAt=" + updateAt +
                 '}';
     }
+
+
+
+
+
+    
+
 }

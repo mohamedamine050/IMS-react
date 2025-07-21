@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import Layout from "../component/Layout";
 import ApiService from "../service/ApiService";
 import { useNavigate, useParams } from "react-router-dom";
+import "./AddEditProductstyle.css"; // Assure-toi de créer ce fichier pour le style
 
 const AddEditProductPage = () => {
-  const { productId } = useParams("");
+  const { productId } = useParams();
   const [name, setName] = useState("");
   const [sku, setSku] = useState("");
   const [price, setPrice] = useState("");
@@ -32,19 +33,20 @@ const AddEditProductPage = () => {
       }
     };
 
-    const fetProductById = async () => {
+    const fetchProductById = async () => {
       if (productId) {
         setIsEditing(true);
         try {
           const productData = await ApiService.getProductById(productId);
           if (productData.status === 200) {
-            setName(productData.product.name);
-            setSku(productData.product.sku);
-            setPrice(productData.product.price);
-            setStokeQuantity(productData.product.stockQuantity);
-            setCategoryId(productData.product.categoryId);
-            setDescription(productData.product.description);
-            setImageUrl(productData.product.imageUrl);
+            const p = productData.product;
+            setName(p.name);
+            setSku(p.sku);
+            setPrice(p.price);
+            setStokeQuantity(p.stockQuantity);
+            setCategoryId(p.categoryId);
+            setDescription(p.description);
+            setImageUrl(p.imageUrl);
           } else {
             showMessage(productData.message);
           }
@@ -58,10 +60,9 @@ const AddEditProductPage = () => {
     };
 
     fetchCategories();
-    if (productId) fetProductById();
+    if (productId) fetchProductById();
   }, [productId]);
 
-  //metjhod to show message or errors
   const showMessage = (msg) => {
     setMessage(msg);
     setTimeout(() => {
@@ -73,7 +74,7 @@ const AddEditProductPage = () => {
     const file = e.target.files[0];
     setImageFile(file);
     const reader = new FileReader();
-    reader.onloadend = () => setImageUrl(reader.result); //user imagurl to preview the image to upload
+    reader.onloadend = () => setImageUrl(reader.result);
     reader.readAsDataURL(file);
   };
 
@@ -86,34 +87,33 @@ const AddEditProductPage = () => {
     formData.append("stockQuantity", stockQuantity);
     formData.append("categoryId", categoryId);
     formData.append("description", description);
-    if (imageFile) {
-      formData.append("imageFile", imageFile);
-    }
+    if (imageFile) formData.append("imageFile", imageFile);
 
     try {
       if (isEditing) {
         formData.append("productId", productId);
         await ApiService.updateProduct(formData);
-        showMessage("Product successfully updated");
+        showMessage("✅ Product successfully updated");
       } else {
         await ApiService.addProduct(formData);
-        showMessage("Product successfully Saved 🤩");
+        showMessage("✅ Product successfully saved");
       }
       navigate("/product");
     } catch (error) {
       showMessage(
-        error.response?.data?.message || "Error Saving a Product: " + error
+        error.response?.data?.message || "❌ Error saving product: " + error
       );
     }
   };
 
   return (
     <Layout>
-      {message && <div className="message">{message}</div>}
+      <div className="form-container">
+        <h1>{isEditing ? "Edit Product" : "Add New Product"}</h1>
 
-      <div className="product-form-page">
-        <h1>{isEditing ? "Edit Product" : "Add Product"}</h1>
-        <form onSubmit={handleSubmit}>
+        {message && <div className="message">{message}</div>}
+
+        <form onSubmit={handleSubmit} className="form-grid">
           <div className="form-group">
             <label>Product Name</label>
             <input
@@ -121,11 +121,12 @@ const AddEditProductPage = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              autoFocus
             />
           </div>
 
           <div className="form-group">
-            <label>Sku</label>
+            <label>SKU</label>
             <input
               type="text"
               value={sku}
@@ -141,41 +142,42 @@ const AddEditProductPage = () => {
               value={stockQuantity}
               onChange={(e) => setStokeQuantity(e.target.value)}
               required
+              min="0"
             />
           </div>
 
           <div className="form-group">
-            <label>Price</label>
+            <label>Price (€)</label>
             <input
               type="number"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               required
+              min="0"
+              step="0.01"
             />
           </div>
 
-          <div className="form-group">
+          <div className="form-group full-width">
             <label>Description</label>
-
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              rows="3"
             />
           </div>
 
           <div className="form-group">
             <label>Category</label>
-
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
               required
             >
-              <option value="">Select a category</option>
-
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
+              <option value="">-- Select a category --</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
                 </option>
               ))}
             </select>
@@ -183,14 +185,28 @@ const AddEditProductPage = () => {
 
           <div className="form-group">
             <label>Product Image</label>
-            <input type="file" onChange={handleImageChange} />
-
+            <input type="file" onChange={handleImageChange} accept="image/*" />
             {imageUrl && (
-              <img src={imageUrl} alt="preview" className="image-preview" />
+              <img
+                src={imageUrl}
+                alt="Preview"
+                className="image-preview"
+              />
             )}
           </div>
-          <button type="submit">{isEditing ? "Edit Product" : "Add Product"}</button>
 
+          <div className="form-actions full-width">
+            <button
+              type="button"
+              className="btn cancel-btn"
+              onClick={() => navigate("/product")}
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn submit-btn">
+              {isEditing ? "Update Product" : "Add Product"}
+            </button>
+          </div>
         </form>
       </div>
     </Layout>

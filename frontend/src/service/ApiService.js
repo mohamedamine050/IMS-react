@@ -3,7 +3,7 @@ import CryptoJS from "crypto-js";
 
 export default class ApiService {
 
-    static BASE_URL = "http://localhost:5050/api";
+    static BASE_URL = "http://localhost:8080/api";
     static ENCRYPTION_KEY = "phegon-dev-inventory";
 
 
@@ -164,6 +164,13 @@ export default class ApiService {
         return response.data;
     }
 
+    static async countProducts() {
+        const response = await axios.get(`${this.BASE_URL}/products/count`, {
+            headers: this.getHeader()
+        });
+        return response.data;
+    }
+
 
 
     /**CATEGOTY EDNPOINTS */
@@ -240,6 +247,13 @@ export default class ApiService {
         return response.data;
     }
 
+    static async countSuppliers() {
+        const response = await axios.get(`${this.BASE_URL}/suppliers/count`, {
+            headers: this.getHeader()
+        })
+        return response.data;
+    }
+
 
 
 
@@ -248,9 +262,10 @@ export default class ApiService {
 
     /**Transactions EDNPOINTS */
     static async purchaseProduct(body) {
+        // body doit contenir productIds: [id1, id2, ...], supplierId, quantity, etc.
         const response = await axios.post(`${this.BASE_URL}/transactions/purchase`, body, {
             headers: this.getHeader()
-        })
+        });
         return response.data;
     }
 
@@ -268,6 +283,8 @@ export default class ApiService {
         })
         return response.data;
     }
+
+
 
     static async getAllTransactions(filter) {
         const response = await axios.get(`${this.BASE_URL}/transactions/all`, {
@@ -299,6 +316,37 @@ export default class ApiService {
     static async updateTransactionStatus(transactionId, status) {
         const response = await axios.put(`${this.BASE_URL}/transactions/${transactionId}`, status, {
             headers: this.getHeader()
+        })
+        return response.data;
+    }
+    static async deleteTransaction(transactionId) {
+        const response = await axios.delete(`${this.BASE_URL}/transactions/delete/${transactionId}`, {
+            headers: this.getHeader()
+        })
+        return response.data;
+    }
+
+    static async countTransactions() {
+        const response = await axios.get(`${this.BASE_URL}/transactions/count`, {
+            headers: this.getHeader()
+        })
+        return response.data;
+    }
+    
+    static async countSales() {
+        const response = await axios.get(`${this.BASE_URL}/transactions/sales/count`, {
+            headers: this.getHeader()
+        })
+        return response.data;
+    }   
+
+    static async sumTotalPriceByTypeAndStatus(type, status) {
+        const response = await axios.get(`${this.BASE_URL}/transactions/sum-total-price`, {
+            headers: this.getHeader(),
+            params: {
+                type: type,
+                status: status
+            }
         })
         return response.data;
     }
