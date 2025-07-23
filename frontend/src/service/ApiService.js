@@ -333,13 +333,7 @@ export default class ApiService {
         return response.data;
     }
     
-    static async countSales() {
-        const response = await axios.get(`${this.BASE_URL}/transactions/sales/count`, {
-            headers: this.getHeader()
-        })
-        return response.data;
-    }   
-
+    
     static async sumTotalPriceByTypeAndStatus(type, status) {
         const response = await axios.get(`${this.BASE_URL}/transactions/sum-total-price`, {
             headers: this.getHeader(),
@@ -347,6 +341,20 @@ export default class ApiService {
                 type: type,
                 status: status
             }
+        })
+        return response.data;
+    }
+
+    static async countAllTransactionTypes() {
+        const response = await axios.get(`${this.BASE_URL}/transactions/transaction-type-count`, {
+            headers: this.getHeader()
+        })
+        return response.data;
+        }
+
+    static async countCompletedSales() {
+        const response = await axios.get(`${this.BASE_URL}/transactions/completed-sales-count`, {
+            headers: this.getHeader()
         })
         return response.data;
     }

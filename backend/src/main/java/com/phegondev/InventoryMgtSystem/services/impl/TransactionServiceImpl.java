@@ -26,13 +26,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -261,23 +263,33 @@ public class TransactionServiceImpl implements TransactionService {
                                 .build();
 
         }
-        @Override
-        public long countSales() {
-                return transactionRepository.countByTransactionType(TransactionType.SALE);
-        }
-            
+         
+     
+
+
+
+        
+       public Double countCompletedSales() {
+    return transactionRepository.sumSalesByTypeAndStatus(TransactionType.SALE, TransactionStatus.COMPLETED);
+}
+
 
         @Override
-        public BigDecimal sumTotalPriceByTypeAndStatus(TransactionType type, TransactionStatus status)
-        {
-                return transactionRepository.sumTotalPriceByTypeAndStatus(type, status)
-                        .orElse(BigDecimal.ZERO);
-        }
-        @Override
-        public BigDecimal sumTotalPriceByTransactionTypeAndStatus(TransactionType type, TransactionStatus status
-        ) {
-                return transactionRepository.sumTotalPriceByTransactionTypeAndStatus(type, status);
-        }
+public Map<String, Long> countAllTransactionTypes() {
+    List<Object[]> results = transactionRepository.countAllTransactionTypes();
+    Map<String, Long> map = new HashMap<>();
+    for (Object[] result : results) {
+        TransactionType type = (TransactionType) result[0];
+        Long count = (Long) result[1];
+        map.put(type.name(), count);
+    }
+    return map;
+}
+
+        
+
+
+      
   
 
 }

@@ -99,15 +99,16 @@ const TransactionsPage = () => {
                 <tbody>
                     {transactions.map((transaction) => (
                         <tr key={transaction.id}>
-                            <td>{transaction.transactionType}</td>
-                            <td>{transaction.status}</td>
-                            <td>{transaction.totalPrice}</td>
-                            <td>{transaction.totalProducts}</td>
-                            <td>{new Date(transaction.createdAt).toLocaleString()}</td>
-
-                            <td>
-                                <button onClick={()=> navigateToTransactionDetailsPage(transaction.id)}>View Details</button>
-                            </td>
+                            <td data-label="Type">{transaction.transactionType}</td>
+<td data-label="Status">{transaction.status}</td>
+<td data-label="Total Price">{transaction.totalPrice}</td>
+<td data-label="Total Products">{transaction.totalProducts}</td>
+<td data-label="Date">{new Date(transaction.createdAt).toLocaleString()}</td>
+<td data-label="Actions">
+  <button onClick={() => navigateToTransactionDetailsPage(transaction.id)}>
+    View Details
+  </button>
+</td>
                         </tr>
                     ))}
                 </tbody>

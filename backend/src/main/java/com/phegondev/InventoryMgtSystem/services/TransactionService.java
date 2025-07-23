@@ -1,11 +1,10 @@
 package com.phegondev.InventoryMgtSystem.services;
 
-import java.math.BigDecimal;
+import java.util.Map;
 
 import com.phegondev.InventoryMgtSystem.dtos.Response;
 import com.phegondev.InventoryMgtSystem.dtos.TransactionRequest;
 import com.phegondev.InventoryMgtSystem.enums.TransactionStatus;
-import com.phegondev.InventoryMgtSystem.enums.TransactionType;
 
 public interface TransactionService {
     Response purchase(TransactionRequest transactionRequest);
@@ -22,10 +21,14 @@ public interface TransactionService {
 
     Response updateTransactionStatus(Long transactionId, TransactionStatus status);
 
-    long countSales() ;
-    BigDecimal sumTotalPriceByTypeAndStatus(TransactionType type, TransactionStatus status);
+    
+    
 
-    BigDecimal sumTotalPriceByTransactionTypeAndStatus(TransactionType type, TransactionStatus status);
+    Double countCompletedSales();
+
+    
+    Map<String, Long> countAllTransactionTypes();
+
 
     
 

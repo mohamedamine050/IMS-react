@@ -191,6 +191,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     // Ajoute cette méthode pour l'upload Cloudinary
+    @SuppressWarnings({ "null", "rawtypes" })
     private String uploadImageToCloudinary(MultipartFile imageFile) {
         if (!imageFile.getContentType().startsWith("image/") || imageFile.getSize() > 1024 * 1024 * 1024) {
             throw new IllegalArgumentException("Only image files under 1GIG is allowed");

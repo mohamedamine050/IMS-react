@@ -3,12 +3,11 @@ package com.phegondev.InventoryMgtSystem.controllers;
 import com.phegondev.InventoryMgtSystem.dtos.Response;
 import com.phegondev.InventoryMgtSystem.dtos.TransactionRequest;
 import com.phegondev.InventoryMgtSystem.enums.TransactionStatus;
-import com.phegondev.InventoryMgtSystem.enums.TransactionType;
 import com.phegondev.InventoryMgtSystem.services.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-import java.math.BigDecimal;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -66,27 +65,22 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.updateTransactionStatus(transactionId, status));
     }
     
-    @GetMapping("/count/sales")
-    public ResponseEntity<Long> countSales() {
-        long count = transactionService.countSales();
-        return ResponseEntity.ok(count);
+    
+    
+    
+    @GetMapping("/completed-sales-count")
+    public ResponseEntity<Double> countCompletedSales() {
+        return ResponseEntity.ok(transactionService.countCompletedSales());
     }
-    @GetMapping("/sum/total-price")
-    public ResponseEntity<BigDecimal> sumTotalPriceByTypeAndStatus(
-            @RequestParam TransactionType type,
-            @RequestParam TransactionStatus status) {
 
-        BigDecimal totalPrice = transactionService.sumTotalPriceByTypeAndStatus(type, status);
-        return ResponseEntity.ok(totalPrice);
-    }
-    @GetMapping("/sum/total-price-by-type-status")
-    public ResponseEntity<BigDecimal> sumTotalPriceByTransactionTypeAndStatus(
-            @RequestParam TransactionType type,
-            @RequestParam TransactionStatus status) {
 
-        BigDecimal totalPrice = transactionService.sumTotalPriceByTransactionTypeAndStatus(type, status);
-        return ResponseEntity.ok(totalPrice);
-    }
+    @GetMapping("/transaction-type-count")
+   
+public ResponseEntity<Map<String, Long>> countAllTransactionTypes() {
+    return ResponseEntity.ok(transactionService.countAllTransactionTypes());
+}
+
+    
    
 
     

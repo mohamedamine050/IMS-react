@@ -20,19 +20,16 @@ const DashboardPage = () => {
   const [selectedData, setSelectedData] = useState("amount");
 
   const [transactionData, setTransactionData] = useState([]);
-  const [totalSales, setTotalSales] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
   const [totalProducts, setTotalProducts] = useState(0);
   const [totalSuppliers, setTotalSuppliers] = useState(0);
-  
+  const [counts, setCounts] = useState({});
 
-  // Display error message
   const showMessage = (msg) => {
     setMessage(msg);
     setTimeout(() => setMessage(""), 4000);
   };
 
-  // Fetch transaction data for chart
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -49,19 +46,6 @@ const DashboardPage = () => {
     fetchData();
   }, [selectedMonth, selectedYear, selectedData]);
 
-
-  useEffect(() => {
-    const fetchTotalSales = async () => {
-      try {
-        const salesCount = await ApiService.countSales();
-        setTotalSales(salesCount);
-      } catch (error) {
-        showMessage(error.response?.data?.message || "Error fetching total sales");
-      }
-    };
-    fetchTotalSales();
-  }, []);
-
   useEffect(() => {
     const fetchTotalPrice = async () => {
       try {
@@ -70,7 +54,7 @@ const DashboardPage = () => {
       } catch (error) {
         showMessage(error.response?.data?.message || "Error fetching total price");
       }
-    };    
+    };
     fetchTotalPrice();
   }, []);
 
@@ -79,32 +63,65 @@ const DashboardPage = () => {
       try {
         const count = await ApiService.countProducts();
         setTotalProducts(count);
-        } catch (error) {
+      } catch (error) {
         showMessage(error.response?.data?.message || "Error fetching total products");
-        }
+      }
     };
     fetchTotalProducts();
   }, []);
 
-  
   useEffect(() => {
     const fetchTotalSuppliers = async () => {
       try {
         const count = await ApiService.countSuppliers();
         setTotalSuppliers(count);
       } catch (error) {
-
         showMessage(error.response?.data?.message || "Error fetching total suppliers");
       }
     };
     fetchTotalSuppliers();
   }, []);
-  
 
+  useEffect(() => {
+    const fetchTransactionCounts = async () => {
+      try {
+        const response = await ApiService.countAllTransactionTypes();
+        if (response.status === 200) {
+          setCounts(response.data || response);
+        } else {
+          setCounts(response);
+        }
+      } catch (error) {
+        showMessage(error.response?.data?.message || "Error fetching transaction counts");
+      }
+    };
+    fetchTransactionCounts();
+  }, []);
 
+  useEffect(() => {
+    const fetchCompletedSalesCount = async () => {
+      try {
+        const count = await ApiService.countCompletedSales();
+        setTotalPrice(count);
+      } catch (error) {
+        showMessage(error.response?.data);
+        console.error(error);
+      }
+    };
+    fetchCompletedSalesCount();
+  }, []); 
 
+        
 
-  // Transform backend data for chart
+  const stats = [
+    { title: "Total Sales", value: counts.SALE, icon: "💰", change: "+5% this month" },
+    { title: "Total Purchases", value: counts.PURCHASE, icon: "🛒", change: "+3% this month" },
+    { title: "Total Transactions", value: counts.SALE + counts.PURCHASE, icon: "📊", change: "+10% this month" },
+    { title: "Total Products", value: totalProducts, icon: "📦", change: "+2% this month" },
+    { title: "Total Suppliers", value: totalSuppliers, icon: "👥", change: "+1% this month" },
+    { title: "Total Price of Sales", value: totalPrice, icon: "💵", change: "+4% this month" }
+  ];
+
   const transformTransactionData = (transactions, month, year) => {
     const dailyData = {};
     const daysInMonth = new Date(year, month, 0).getDate();
@@ -126,30 +143,38 @@ const DashboardPage = () => {
     return Object.values(dailyData);
   };
 
-  // Handlers
   const handleMonthChange = (e) => setSelectedMonth(parseInt(e.target.value, 10));
   const handleYearChange = (e) => setSelectedYear(parseInt(e.target.value, 10));
 
   return (
     <Layout>
       {message && <div className="message">{message}</div>}
-      <div className="dashboard-page">
-        {/* Statistiques globales */}
-        <div className="stat-cards">
-          <div className="stat-card">Total Sales: {totalSales}</div>
-          <div className="stat-card">Total Revenue: ${totalPrice}</div>
-          <div className="stat-card">Total Products: {totalProducts}</div>
-          <div className="stat-card">Total Suppliers: {totalSuppliers}</div>
-        </div>
 
-        {/* Boutons de filtre */}
+      <div className="dashboard-page">
+        <div className="stats-container">
+  <div className="stats-grid">
+    {stats.map((stat, index) => (
+      <div key={index} className="stat-card">
+        <div className="stat-content">
+          <div className="stat-icon">{stat.icon}</div>
+          <div className="stat-info">
+            <p className="stat-title">{stat.title}</p>
+            <p className="stat-value">{stat.value}</p>
+            <p className="stat-change">{stat.change}</p>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
+
         <div className="button-group">
           <button onClick={() => setSelectedData("count")}>Total No Of Transactions</button>
           <button onClick={() => setSelectedData("quantity")}>Product Quantity</button>
           <button onClick={() => setSelectedData("amount")}>Amount</button>
         </div>
 
-        {/* Filtres date */}
         <div className="filter-section">
           <label htmlFor="month-select">Select Month:</label>
           <select id="month-select" value={selectedMonth} onChange={handleMonthChange}>
@@ -173,7 +198,6 @@ const DashboardPage = () => {
           </select>
         </div>
 
-        {/* Graphique */}
         <div className="chart-section">
           <h3>Daily Transactions</h3>
           <ResponsiveContainer width="100%" height={400}>

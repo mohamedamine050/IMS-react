@@ -31,14 +31,20 @@ public class JwtUtils {
         this.key = new SecretKeySpec(keyByte, "HmacSHA256");
     }
 
-    public String generateToken(String email) {
-        return Jwts.builder()
-                .subject(email)
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME_IN_MILLISEC))
-                .signWith(key)
-                .compact();
-    }
+  public String generateToken(String email) {
+    String token = Jwts.builder()
+            .subject(email)
+            .issuedAt(new Date(System.currentTimeMillis()))
+            .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME_IN_MILLISEC))
+            .signWith(key)
+            .compact();
+
+    // ✅ Affiche le token dans la console pour les tests Postman
+    System.out.println("🔑 JWT Token Generated for Postman: " + token);
+
+    return token;
+}
+
 
     public String getUsernameFromToken(String token) {
         return extractClaims(token, Claims::getSubject);

@@ -2,12 +2,9 @@ package com.phegondev.InventoryMgtSystem.repositories;
 
 import com.phegondev.InventoryMgtSystem.enums.TransactionStatus;
 import com.phegondev.InventoryMgtSystem.enums.TransactionType;
-import com.phegondev.InventoryMgtSystem.models.Supplier;
 import com.phegondev.InventoryMgtSystem.models.Transaction;
 
-import java.math.BigDecimal;
-import java.util.Optional;
-
+import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -22,14 +19,19 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
     
 
      
-   @Query("SELECT SUM(t.totalPrice) FROM Transaction t WHERE t.transactionType = :type AND t.status = :status")
-Optional<BigDecimal> sumTotalPriceByTypeAndStatus(TransactionType type,  TransactionStatus status);
 
 
-     long countByTransactionType(TransactionType sale);
 
-    @Query("SELECT SUM(t.totalPrice) FROM Transaction t WHERE t.transactionType = :type AND t.status = :status")
-    BigDecimal sumTotalPriceByTransactionTypeAndStatus(@Param("type") TransactionType type, @Param("status") TransactionStatus status);
+     
+
+@Query("SELECT SUM(t.totalPrice) FROM Transaction t WHERE t.transactionType = :type AND t.status = :status")
+Double sumSalesByTypeAndStatus(@Param("type") TransactionType type, @Param("status") TransactionStatus status);
+
+
+
+    
+       @Query("SELECT t.transactionType, COUNT(t) FROM Transaction t GROUP BY t.transactionType")
+List<Object[]> countAllTransactionTypes();
 
 
 
